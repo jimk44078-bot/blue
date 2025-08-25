@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞机航班滑块</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #a5deff;
+            font-family: 'Microsoft YaHei', sans-serif;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 背景云朵 */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.7;
+            z-index: -1;
+            animation: float linear infinite;
+        }
+        
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+        
+        /* 生成多个云朵 */
+        .cloud:nth-child(1) {
+            width: 120px; height: 40px;
+            top: 20%; left: 10%;
+            animation-duration: 25s;
+        }
+        .cloud:nth-child(1)::before { width: 50px; height: 50px; top: -20px; left: 10px; }
+        .cloud:nth-child(1)::after { width: 40px; height: 40px; top: -15px; right: 15px; }
+        
+        .cloud:nth-child(2) {
+            width: 100px; height: 35px;
+            top: 60%; right: 15%;
+            animation-duration: 20s;
+        }
+        .cloud:nth-child(2)::before { width: 45px; height: 45px; top: -18px; left: 8px; }
+        .cloud:nth-child(2)::after { width: 35px; height: 35px; top: -12px; right: 12px; }
+        
+        .cloud:nth-child(3) {
+            width: 80px; height: 30px;
+            top: 30%; right: 25%;
+            animation-duration: 18s;
+        }
+        .cloud:nth-child(3)::before { width: 35px; height: 35px; top: -15px; left: 5px; }
+        .cloud:nth-child(3)::after { width: 30px; height: 30px; top: -10px; right: 10px; }
+        
+        .cloud:nth-child(4) {
+            width: 110px; height: 38px;
+            bottom: 25%; left: 20%;
+            animation-duration: 22s;
+        }
+        .cloud:nth-child(4)::before { width: 48px; height: 48px; top: -19px; left: 9px; }
+        .cloud:nth-child(4)::after { width: 38px; height: 38px; top: -14px; right: 13px; }
+        
+        .cloud:nth-child(5) {
+            width: 95px; height: 33px;
+            bottom: 15%; right: 30%;
+            animation-duration: 19s;
+        }
+        .cloud:nth-child(5)::before { width: 42px; height: 42px; top: -17px; left: 7px; }
+        .cloud:nth-child(5)::after { width: 33px; height: 33px; top: -12px; right: 11px; }
+        
+        @keyframes float {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 200px)); }
+        }
+        
+        /* 机场信息 */
+        .airports {
+            display: flex;
+            justify-content: space-between;
+            width: 70vw;
+            margin-bottom: 20px;
+        }
+        
+        .airport {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            position: relative;
+        }
+        
+        .airport-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            min-height: 24px;
+        }
+        
+        .airport-code {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        
+        .edit-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: #3498db;
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .edit-btn:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #2c3e50;
+            margin: 0 20px;
+            align-self: center;
+        }
+        
+        /* 编辑模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 300px;
+        }
+        
+        .modal h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .modal-btn.confirm {
+            background: #3498db;
+            color: white;
+        }
+        
+        .modal-btn.cancel {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .flight-box {
+            width: 70vw;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1em;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+        
+        input.flight {
+            /* 自定义变量 */
+            --bg: #6c6c84;
+            --scale: 1;
+            --shadow: 0.15em;
+            --opacity: 0.4;
+            --color: rgb(0 0 0 / var(--opacity));
+            --primary: #f0f4fc;
+            --secondary: #b55;
+            --val: 0;
+            --height: 3em;
+            
+            appearance: none;
+            flex: 1;
+            height: var(--height);
+            border: none;
+            border-radius: 10em;
+            position: relative;
+            background: 
+                radial-gradient(circle at 0.35em 50%, var(--bg) 0.35em, transparent 0) no-repeat,
+                radial-gradient(circle at calc(100% - 0.35em) 50%, var(--bg) 0.35em, transparent 0) no-repeat,
+                linear-gradient(transparent 45%, var(--bg) 0 55%, transparent 0) 50% 50% / 99% 100%, 
+                transparent;
+            cursor: pointer;
+        }
+        
+        /* 飞过的轨道 */
+        input.flight::before {
+            content: "";
+            width: calc(var(--val) * 1%);
+            min-width: 0.5em;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: 
+                radial-gradient(circle at 0.35em 50%, #000 0.35em, transparent 0) no-repeat,
+                linear-gradient(transparent 45%, #000 0 55%, transparent 0) 50% 50% / calc(100% - 1em) 100% no-repeat,
+                transparent;
+            border-radius: 10em;
+            z-index: 1;
+        }
+        
+        /* 云朵 - 从左向右移动 */
+        input.flight::after {
+            content: "";
+            width: 100%;
+            height: 12em;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(0, -50%);
+            pointer-events: none;
+            background: 
+                radial-gradient(3% 20% at 50% 20%, #fff 40%, transparent 0),
+                radial-gradient(3% 20% at 52.5% 13%, #fff 40%, transparent 0),
+                radial-gradient(2% 20% at 51% 10%, #fff 40%, transparent 0),
+                radial-gradient(2.5% 20% at 51.5% 27%, #fff 50%, transparent 0),
+                radial-gradient(2% 20% at 53% 23%, #fff 60%, transparent 0),
+                radial-gradient(4% 40% at 55% 20%, #fff 40%, transparent 0),
+                radial-gradient(3% 20% at 40% 80%, #fff 40%, transparent 0),
+                radial-gradient(3% 20% at 42.5% 87%, #fff 40%, transparent 0),
+                radial-gradient(2% 20% at 41% 90%, #fff 40%, transparent 0),
+                radial-gradient(2.5% 20% at 41.5% 72%, #fff 50%, transparent 0),
+                radial-gradient(2% 20% at 43% 73%, #fff 60%, transparent 0),
+                radial-gradient(4% 40% at 40% 78%, #fff 40%, transparent 0),
+                radial-gradient(3% 20% at 60% 30%, #fff 40%, transparent 0),
+                radial-gradient(3% 20% at 62.5% 23%, #fff 40%, transparent 0),
+                radial-gradient(2% 20% at 61% 20%, #fff 40%, transparent 0),
+                radial-gradient(2.5% 20% at 61.5% 37%, #fff 50%, transparent 0),
+                radial-gradient(2% 20% at 63% 33%, #fff 60%, transparent 0),
+                radial-gradient(4% 40% at 65% 30%, #fff 40%, transparent 0);
+            background-size: 300% 100%;
+            background-position: calc((100 - var(--val)) * 1%) 0;
+            mask: linear-gradient(90deg, transparent, rgba(0,0,0,0.5) 35% 65%, transparent);
+            -webkit-mask: linear-gradient(90deg, transparent, rgba(0,0,0,0.5) 35% 65%, transparent);
+            z-index: 0;
+        }
+        
+        /* 滑块（飞机） */
+        input.flight::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            transform: translateY(calc(-50% + var(--height) / 2)) scale(var(--scale));
+            width: 4em;
+            height: 4em;
+            pointer-events: none;
+            /* 开始画飞机 */
+            background: 
+                linear-gradient(var(--secondary) 0 0) 2% 50% / 13% 2.5% no-repeat,
+                /* 主体 */
+                conic-gradient(at -40% 50%, transparent 84.75deg, var(--primary) 85deg 95deg, transparent 95.25deg) 0 0 / 80% 100%,
+                /* 飞机头 */
+                radial-gradient(circle at calc(100% - 0.85em) 50%, #9cf 0.3em, transparent 0),
+                radial-gradient(20% 10% at 80% 50%, var(--primary) 99%, transparent),
+                /* 机尾 */
+                conic-gradient(at 45% -45%, transparent 150deg, var(--secondary) 151deg 174deg, transparent 175deg) -50% 40% / 53% 20%,
+                conic-gradient(at 45% 145%, transparent 5deg, var(--secondary) 6deg 29deg, transparent 30deg) -50% 60% / 53% 20%,
+                /* 机翼 */
+                conic-gradient(at 38% -45%, transparent 158deg, var(--secondary) 158.5deg 174deg, transparent 174.5deg) 0 0 / 100% 50%,
+                conic-gradient(at 38% 145%, transparent 5deg, var(--secondary) 5.5deg 21deg, transparent 21.5deg) 0 100% / 100% 50%,
+                /* 引擎 */
+                radial-gradient(80% 50%, #000 99%, transparent) 51% 22% / 21% 11%,
+                radial-gradient(80% 50%, #000 99%, transparent) 51% 78% / 21% 11%;
+            background-repeat: no-repeat;
+            border-radius: 20% / 100%;
+            filter: drop-shadow(calc(var(--shadow) * 2) calc(var(--shadow) * 1.25) var(--shadow) var(--color));
+            box-shadow: none;
+            cursor: grab;
+            z-index: 2;
+        }
+        
+        input.flight::-moz-range-thumb {
+            width: 4em;
+            height: 4em;
+            border: none;
+            border-radius: 20% / 100%;
+            background: 
+                linear-gradient(var(--secondary) 0 0) 2% 50% / 13% 2.5% no-repeat,
+                conic-gradient(at -40% 50%, transparent 84.75deg, var(--primary) 85deg 95deg, transparent 95.25deg) 0 0 / 80% 100%,
+                radial-gradient(circle at calc(100% - 0.85em) 50%, #9cf 0.3em, transparent 0),
+                radial-gradient(20% 10% at 80% 50%, var(--primary) 99%, transparent),
+                conic-gradient(at 45% -45%, transparent 150deg, var(--secondary) 151deg 174deg, transparent 175deg) -50% 40% / 53% 20%,
+                conic-gradient(at 45% 145%, transparent 5deg, var(--secondary) 6deg 29deg, transparent 30deg) -50% 60% / 53% 20%,
+                conic-gradient(at 38% -45%, transparent 158deg, var(--secondary) 158.5deg 174deg, transparent 174.5deg) 0 0 / 100% 50%,
+                conic-gradient(at 38% 145%, transparent 5deg, var(--secondary) 5.5deg 21deg, transparent 21.5deg) 0 100% / 100% 50%,
+                radial-gradient(80% 50%, #000 99%, transparent) 51% 22% / 21% 11%,
+                radial-gradient(80% 50%, #000 99%, transparent) 51% 78% / 21% 11%;
+            background-repeat: no-repeat;
+            filter: drop-shadow(calc(var(--shadow) * 2) calc(var(--shadow) * 1.25) var(--shadow) var(--color));
+            cursor: grab;
+            z-index: 2;
+        }
+        
+        .progress-text {
+            margin-top: 15px;
+            font-size: 16px;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景云朵 -->
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    
+    <!-- 机场信息 -->
+    <div class="airports">
+        <div class="airport" id="start-airport">
+            <button class="edit-btn" onclick="openEditModal('start')">编辑</button>
+            <div class="airport-name">大连周水子机场</div>
+            <div class="airport-code">DLC</div>
+        </div>
+        
+        <div class="arrow">→</div>
+        
+        <div class="airport" id="end-airport">
+            <button class="edit-btn" onclick="openEditModal('end')">编辑</button>
+            <div class="airport-name">武汉天河机场</div>
+            <div class="airport-code">WUH</div>
+        </div>
+    </div>
+    
+    <div class="flight-box">
+        <input type="range" class="flight" min="0" max="100" value="0">
+    </div>
+    
+    <div class="progress-text">
+        飞行进度: <span id="progress-value">0</span>%
+    </div>
+
+    <!-- 编辑模态框 -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">编辑机场信息</h3>
+            <input type="text" id="airportNameInput" placeholder="机场名称">
+            <input type="text" id="airportCodeInput" placeholder="机场代码">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn confirm" onclick="saveAirportInfo()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEditing = ''; // 当前编辑的机场类型：start 或 end
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const slider = document.querySelector('.flight');
+            const progressValue = document.getElementById('progress-value');
+            
+            // 初始化
+            updateFlightInfo(slider.value);
+            
+            // 监听滑块变化
+            slider.addEventListener('input', function() {
+                updateFlightInfo(this.value);
+            });
+            
+            // 更新飞行信息
+            function updateFlightInfo(value) {
+                // 计算动态值
+                const scale = 1 + 0.5 * Math.sin(Math.PI * value / 100);
+                const shadow = Math.max(0.15, Math.min(1, Math.sin(Math.PI * value / 100)));
+                const opacity = Math.max(0.2, Math.min(0.4, 1 - Math.sin(Math.PI * value / 100)));
+                
+                // 更新CSS变量
+                slider.style.setProperty('--val', value);
+                slider.style.setProperty('--scale', scale);
+                slider.style.setProperty('--shadow', shadow + 'em');
+                slider.style.setProperty('--opacity', opacity);
+                
+                // 更新显示值
+                progressValue.textContent = value;
+            }
+        });
+        
+        // 打开编辑模态框
+        function openEditModal(type) {
+            currentEditing = type;
+            const modal = document.getElementById('editModal');
+            const title = document.getElementById('modalTitle');
+            const airport = document.getElementById(`${type}-airport`);
+            const name = airport.querySelector('.airport-name').textContent;
+            const code = airport.querySelector('.airport-code').textContent;
+            
+            title.textContent = `编辑${type === 'start' ? '起点' : '终点'}机场`;
+            document.getElementById('airportNameInput').value = name;
+            document.getElementById('airportCodeInput').value = code;
+            
+            modal.style.display = 'flex';
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        // 保存机场信息
+        function saveAirportInfo() {
+            const name = document.getElementById('airportNameInput').value.trim();
+            const code = document.getElementById('airportCodeInput').value.trim();
+            
+            if (name && code) {
+                const airport = document.getElementById(`${currentEditing}-airport`);
+                airport.querySelector('.airport-name').textContent = name;
+                airport.querySelector('.airport-code').textContent = code.toUpperCase();
+                closeModal();
+            } else {
+                alert('请输入完整的机场信息！');
+            }
+        }
+        
+        // 点击模态框外部关闭
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
