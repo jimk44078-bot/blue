@@ -448,18 +448,7 @@
             document.getElementById('editModal').style.display = 'none';
         }
         
-        // 保存机场信息
-        function saveAirportInfo() {
-            const name = document.getElementById('airportNameInput').value.trim();
-            
-            if (name) {
-                const airport = document.getElementById(`${currentEditing}-airport`);
-                airport.querySelector('.airport-name').textContent = name;
-                closeModal();
-            } else {
-                alert('请输入机场名称！');
-            }
-        }
+    
         
         // 点击模态框外部关闭
         document.getElementById('editModal').addEventListener('click', function(e) {
