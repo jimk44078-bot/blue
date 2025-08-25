@@ -375,14 +375,14 @@
     <div class="airports">
         <div class="airport" id="start-airport">
             <button class="edit-btn" onclick="openEditModal('start')">🖊</button>
-            <div class="airport-name">大连周水子机场</div>
+            <div class="airport-name">武汉天河机场</div>
         </div>
         
         <div class="arrow">→</div>
         
         <div class="airport" id="end-airport">
             <button class="edit-btn" onclick="openEditModal('end')">🖊</button>
-            <div class="airport-name">武汉天河机场</div>
+            <div class="airport-name">大连周子水机场</div>
         </div>
     </div>
     
@@ -394,17 +394,6 @@
         飞行进度: <span id="progress-value">0</span>%
     </div>
 
-    <!-- 编辑模态框 -->
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <h3 id="modalTitle">编辑机场信息</h3>
-            <input type="text" id="airportNameInput" placeholder="机场名称">
-            <div class="modal-buttons">
-                <button class="modal-btn cancel" onclick="closeModal()">取消</button>
-                <button class="modal-btn confirm" onclick="saveAirportInfo()">确认</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         let currentEditing = ''; // 当前编辑的机场类型：start 或 end
